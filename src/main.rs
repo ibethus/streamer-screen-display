@@ -95,10 +95,14 @@ fn main() -> ! {
     // Use display graphics from embedded-graphics
     let mut display = Display2in9::default();
 
+    let text = "Voilà un exemple de texte \nIl pourrait être envoyé par la raspi \nprincipale et être affiché \npar la pico";
+    let mut lines = text.lines();
     display.set_rotation(DisplayRotation::Rotate90);
-    draw_text_primary(&mut display, "Hello, world !", 5, 15);
-    draw_text_secondary(&mut display, "Avec des accents : àéçèî", 5, 35);
-    draw_text_secondary(&mut display, "Et zou la troisième ligne !", 5, 55);
+    draw_text_primary(&mut display, lines.next().get_or_insert(""), 5, 5);
+
+    lines.enumerate().for_each(|(i, line)| {
+        draw_text_secondary(&mut display, line, 5, (25 + 20 * i).try_into().unwrap())
+    });
 
     epd.update_frame(&mut spi, display.buffer(), &mut delay)
         .unwrap();
@@ -113,13 +117,13 @@ fn main() -> ! {
             .background_color(BinaryColor::Off)
             .text_color(BinaryColor::On)
             .build();
-
         let text_style = TextStyleBuilder::new().baseline(Baseline::Top).build();
         let _ = Text::with_text_style(text, Point::new(x, y), style, text_style).draw(display);
     }
+
     fn draw_text_secondary(display: &mut Display2in9, text: &str, x: i32, y: i32) {
         let style = MonoTextStyleBuilder::new()
-            .font(&embedded_graphics::mono_font::iso_8859_1::FONT_9X18_BOLD)
+            .font(&embedded_graphics::mono_font::iso_8859_1::FONT_9X18)
             .background_color(BinaryColor::Off)
             .text_color(BinaryColor::On)
             .build();
